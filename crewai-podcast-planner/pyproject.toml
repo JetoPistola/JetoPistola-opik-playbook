@@ -1,10 +1,11 @@
 [project]
 name = "crewai-podcast-planner"
 version = "0.1.0"
-description = "Three CrewAI agents plan a podcast episode."
+description = "Three CrewAI agents plan a podcast episode; Opik shows one trace with cost per agent."
 requires-python = ">=3.12"
 dependencies = [
     "crewai>=1.15.17",
+    "opik==2.2.99",
     "python-dotenv>=1.2.3",
 ]
 

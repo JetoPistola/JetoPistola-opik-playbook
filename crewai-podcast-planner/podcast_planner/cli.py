@@ -13,6 +13,7 @@ def main() -> None:
         if (parent / ".env").exists():
             load_dotenv(parent / ".env")
             break
+    # Turns off CrewAI's own telemetry so only Opik receives trace data from this run.
     os.environ.setdefault("CREWAI_DISABLE_TELEMETRY", "true")
     os.environ.setdefault("OTEL_SDK_DISABLED", "false")
 
@@ -21,11 +22,15 @@ def main() -> None:
     parser.add_argument("--notes", type=Path, default=None, help="path to a notes markdown file")
     args = parser.parse_args()
 
+    import opik
+
     from .crew import DEFAULT_NOTES, plan_episode
 
     result = plan_episode(args.brief, args.notes or DEFAULT_NOTES)
     print("\n=== EPISODE PACKAGE ===\n")
     print(result)
+    # The tracker sends in the background; flush so the trace is delivered before the process exits.
+    opik.flush_tracker()
 
 
 if __name__ == "__main__":
