@@ -15,8 +15,8 @@ def _words(text: str) -> set[str]:
 
 
 # A named tool span: retrieval shows up as its own `search_catalog` step (type tool) inside
-# `prepare-context`, with the query and the matched books as input/output. We decorate it
-# ourselves instead of relying on the tracer to surface the retrieval.
+# `prepare-context`, with the query and the matched books as input/output, so you can read
+# what the model was given next to its reply.
 @opik.track(name="search_catalog", type="tool")
 def search_catalog(query: str, k: int = 3) -> list[dict]:
     """Rank books by keyword overlap with title, genre, tags and summary."""

@@ -1,7 +1,8 @@
 """FastAPI chat backend for the Maple Street Library widget, traced with OpikTracer.
 
 Each POST /chat is one LangChain run. The chain is string in -> string out, so the
-trace's input is the patron's message and its output is the librarian's reply.
+trace's input is the patron's message and its output is the librarian's reply;
+the OpikTracer's thread_id is the widget's conversation id.
 """
 import os
 from pathlib import Path
@@ -75,8 +76,9 @@ def chat(req: ChatRequest) -> dict:
         raise HTTPException(400, "message must not be empty")
     # One OpikTracer per request: the run becomes a trace named `library-chat-turn` whose
     # children are prepare-context, ChatPromptTemplate, ChatOpenAI (llm span with tokens
-    # and cost) and StrOutputParser.
-    tracer = OpikTracer(project_name=PROJECT_NAME, tags=["library-widget"])
+    # and cost) and StrOutputParser. thread_id=conversation_id groups the turns of one chat
+    # into a single thread in the Threads tab; without it every turn is an unrelated trace.
+    tracer = OpikTracer(thread_id=req.conversation_id, project_name=PROJECT_NAME, tags=["library-widget"])
     reply = chain.invoke(
         req.message,
         config={
