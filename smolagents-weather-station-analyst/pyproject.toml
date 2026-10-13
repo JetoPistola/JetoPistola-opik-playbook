@@ -1,0 +1,10 @@
+[project]
+name = "smolagents-weather-station-analyst"
+version = "0.1.0"
+description = "A smolagents CodeAgent answers questions about a weather-station CSV"
+requires-python = ">=3.12"
+dependencies = [
+    "smolagents[openai]>=1.20",
+    "pandas>=2.2",
+    "python-dotenv>=1.0",
+]
