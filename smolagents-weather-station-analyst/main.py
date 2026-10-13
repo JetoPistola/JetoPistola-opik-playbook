@@ -1,4 +1,4 @@
-"""Weather-station analyst: a smolagents CodeAgent that writes pandas code to answer questions about a CSV."""
+"""Weather-station analyst: a smolagents CodeAgent whose pandas code shows up in Opik spans."""
 import os
 from pathlib import Path
 
@@ -12,6 +12,27 @@ for p in Path(__file__).resolve().parents:  # walk up to a repo-root .env
         load_dotenv(p / ".env")
         break
 os.environ.pop("OPENAI_BASE_URL", None)
+
+# Opik ingests OpenTelemetry at /api/v1/private/otel: no Opik SDK needed, spans arrive over OTLP/HTTP.
+endpoint = os.getenv("OPIK_OTEL_ENDPOINT", "http://localhost:5173/api/v1/private/otel")
+# Comet-Workspace picks the workspace, projectName the Opik project the traces land in.
+headers = f"Comet-Workspace={os.getenv('OPIK_WORKSPACE', 'default')},projectName={PROJECT}"
+if os.getenv("OPIK_API_KEY"):  # Authorization is only needed for Opik Cloud; local Opik takes none
+    headers = f"Authorization={os.environ['OPIK_API_KEY']}," + headers
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = endpoint
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = headers
+
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor  # noqa: E402
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter  # noqa: E402
+from opentelemetry.sdk.trace import TracerProvider  # noqa: E402
+from opentelemetry.sdk.trace.export import BatchSpanProcessor  # noqa: E402
+
+# The batch processor ships spans in the background, so they must be flushed before exit (see main()).
+provider = TracerProvider()
+provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+# The instrumentor hooks CodeAgent.run, each step and each model call: the generated pandas code lands in
+# the generate spans' output and the execution logs in the Step spans' output, with token usage on LLM spans.
+SmolagentsInstrumentor().instrument(tracer_provider=provider)
 
 from smolagents import CodeAgent, OpenAIServerModel  # noqa: E402
 
@@ -39,6 +60,10 @@ def main() -> None:
     for i, q in enumerate(QUESTIONS, 1):
         print(f"\n=== Question {i}: {q}")
         print(f"Answer {i}:", agent.run(BRIEFING + "\n\nQuestion: " + q))
+    # Without force_flush/shutdown the BatchSpanProcessor queue is dropped at exit and the project stays empty.
+    provider.force_flush()
+    provider.shutdown()
+    print(f"\nDone. Open the '{PROJECT}' project in Opik.")
 
 
 if __name__ == "__main__":
