@@ -1,7 +1,9 @@
 """Rewrite the same passages at three reading levels on two providers.
 
-Every call goes through LiteLLM. The script prints a per-model table
-(tokens, cost, latency) built from the responses.
+Every call goes through LiteLLM; Opik's OpikLogger callback records each one
+as a trace in the "litellm-reading-level-router" project. The script then
+prints a per-model table (tokens, cost, latency) built from the same
+responses, so you can check it against Opik's own numbers.
 """
 
 import json
@@ -22,11 +24,21 @@ for parent in HERE.parents:  # find the repo-root .env, if any
         break
 load_dotenv(HERE / ".env", override=True)
 
+PROJECT = "litellm-reading-level-router"
+# Opik reads the project name from this env var; it must be set before opik / OpikLogger load,
+# or traces land in "Default Project".
+os.environ["OPIK_PROJECT_NAME"] = PROJECT
 os.environ.pop("ANTHROPIC_BASE_URL", None)  # always talk to the real API
 
 import litellm
+import opik
+from litellm.integrations.opik.opik import OpikLogger
 
 logging.getLogger("LiteLLM").setLevel(logging.CRITICAL)
+# OpikLogger callback: every litellm.completion call becomes one trace with one llm span
+# (model, token usage, estimated cost); no decorator or client wrapper needed.
+# It prints a harmless "periodic_flush was never awaited" RuntimeWarning in a plain script.
+litellm.callbacks = [OpikLogger()]
 
 MODELS = ["openai/gpt-4o-mini", "anthropic/claude-haiku-4-5-20251001"]
 
@@ -52,6 +64,9 @@ def rewrite(model: str, passage: dict, level: str) -> dict:
     response = litellm.completion(
         model=model,
         messages=[{"role": "user", "content": prompt}],
+        # metadata["opik"]["tags"] become the trace tags in Opik, so the Traces table can be
+        # filtered by model, reading level or passage.
+        metadata={"opik": {"tags": [model.split("/")[-1], level, passage["id"]]}},
     )
     latency = time.perf_counter() - start
     text = response.choices[0].message.content
@@ -94,6 +109,9 @@ def main() -> None:
             for m, rs in by_model.items()
         )
         print(f"  {level:<7} {cells}")
+
+    # The OpikLogger sends in batches; flush so the last traces are not lost when the script exits.
+    opik.flush_tracker()
 
 
 if __name__ == "__main__":
