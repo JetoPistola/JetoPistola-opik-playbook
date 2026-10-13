@@ -1,10 +1,11 @@
 [project]
 name = "opik-py-redaction-pipeline"
 version = "0.1.0"
-description = "A document-redaction pipeline: regex detector, LLM detector, redactor, verifier."
+description = "A document-redaction pipeline traced entirely by hand with the low-level Opik Python client."
 requires-python = ">=3.12"
 dependencies = [
     "openai>=1.60",
+    "opik==2.2.99",
     "python-dotenv>=1.0",
 ]
 
