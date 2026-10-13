@@ -1,0 +1,9 @@
+[project]
+name = "litellm-reading-level-router"
+version = "0.1.0"
+description = "Route reading-level rewrites to two providers via LiteLLM and compare cost and latency."
+requires-python = ">=3.12"
+dependencies = [
+    "litellm>=1.79",
+    "python-dotenv>=1.2.3",
+]
