@@ -1,11 +1,18 @@
-"""Incident post-mortem team: lead -> investigators (loop) -> writer.
+"""Incident post-mortem team: lead -> investigators (loop) -> writer, traced by Opik.
 
 The lead reads the incident brief and decides which evidence files to examine.
 An investigator agent loops over that work list (bounded at MAX_INVESTIGATIONS),
 reading one evidence file per pass. The writer drafts a blameless post-mortem.
+The compiled graph goes through track_langgraph, so the whole run is ONE Opik
+trace and the agent graph (with its loop) renders in the UI.
 """
 
+import os
 import pathlib
+
+PROJECT_NAME = "langgraph-postmortem-team"
+# Set before opik is imported so every trace lands in this project.
+os.environ["OPIK_PROJECT_NAME"] = PROJECT_NAME
 
 import dotenv
 
@@ -15,8 +22,10 @@ for parent in pathlib.Path(__file__).resolve().parents:
         dotenv.load_dotenv(parent / ".env")
         break
 
+import opik
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
+from opik.integrations.langchain import OpikTracer, track_langgraph
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 
@@ -119,7 +128,12 @@ graph.add_conditional_edges(
 )
 graph.add_edge("writer", END)
 
-app = graph.compile()
+# track_langgraph attaches the tracer to the compiled graph: one invoke() becomes
+# ONE trace with a span per node pass and an llm span per model call. It also
+# hands Opik the graph definition, which is what draws the lead -> investigator
+# loop -> writer picture in the trace's graph view (a plain callback would not).
+opik_tracer = OpikTracer(project_name=PROJECT_NAME)
+app = track_langgraph(graph.compile(), opik_tracer)
 
 
 def main() -> None:
@@ -135,6 +149,9 @@ def main() -> None:
         print(f"  - {t['source']}: {t['focus']}")
     print(f"\n{len(result['findings'])} investigations done. Post-mortem:\n")
     print(result["postmortem"])
+    # Short script: flush so the trace is sent before the process exits.
+    opik_tracer.flush()
+    opik.flush_tracker()
 
 
 if __name__ == "__main__":
