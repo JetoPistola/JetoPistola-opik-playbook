@@ -5,6 +5,8 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import io.quarkiverse.langchain4j.RegisterAiService;
 
+// quarkus-langchain4j + quarkus-opentelemetry trace this interface automatically: an AI-service span
+// plus a "completion <model>" llm span (gen_ai.* attributes -> usage and cost in Opik). No code needed.
 @RegisterAiService
 public interface PharmacyBot {
 
