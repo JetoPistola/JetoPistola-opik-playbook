@@ -1,0 +1,20 @@
+{
+  "household": "The Okonkwo-Lindgren house, Maple Row 14",
+  "appliances": [
+    { "id": "dishwasher", "name": "Dishwasher", "kw": 1.4, "cycle_hours": 2, "flexible": true },
+    { "id": "dryer", "name": "Tumble dryer", "kw": 2.6, "cycle_hours": 1.5, "flexible": true },
+    { "id": "ev_charger", "name": "EV wall charger", "kw": 7.4, "cycle_hours": 4, "flexible": true },
+    { "id": "heat_pump", "name": "Heat pump", "kw": 1.8, "cycle_hours": 24, "flexible": false }
+  ],
+  "tariff": {
+    "name": "Tidewater Time-of-Use",
+    "currency": "EUR",
+    "bands": [
+      { "label": "night", "from": 0, "to": 6, "eur_per_kwh": 0.11 },
+      { "label": "day", "from": 6, "to": 17, "eur_per_kwh": 0.26 },
+      { "label": "peak", "from": 17, "to": 21, "eur_per_kwh": 0.41 },
+      { "label": "evening", "from": 21, "to": 24, "eur_per_kwh": 0.19 }
+    ]
+  },
+  "meter_yesterday_kwh_by_hour": [0.4,0.3,0.3,0.3,0.4,0.6,1.1,1.5,0.9,0.6,0.5,0.5,0.7,0.6,0.5,0.6,0.9,2.8,3.4,3.1,2.2,1.2,0.8,0.5]
+}
