@@ -1,0 +1,28 @@
+services:
+  n8n:
+    build: .
+    container_name: n8n-foodbank-volunteer-screening
+    ports:
+      - "127.0.0.1:5678:5678"
+    # Opik touchpoint: lets the container reach an Opik running on the host
+    # (see "Gotchas" in the README).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Where the spans go. Defaults to a local self-hosted Opik on the host;
+      # override OPIK_OTLP_ENDPOINT (and set OPIK_API_KEY) for Opik Cloud.
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OPIK_OTLP_ENDPOINT:-http://host.docker.internal:5173/api/v1/private/otel}"
+      # Opik touchpoint: headers pick the workspace and the Opik project the traces land in
+      # (projectName); the optional Authorization header is only needed for Opik Cloud.
+      OTEL_EXPORTER_OTLP_HEADERS: "${OPIK_AUTH_HEADER:-}Comet-Workspace=${OPIK_WORKSPACE:-default},projectName=n8n-foodbank-volunteer-screening"
+      # Service name shown on the spans n8n-observability emits.
+      N8N_OTEL_SERVICE_NAME: "n8n-foodbank-volunteer-screening"
+      # localhost-only demo settings
+      N8N_SECURE_COOKIE: "false"
+      N8N_RUNNERS_ENABLED: "true"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+    volumes:
+      - n8n_foodbank_data:/home/node/.n8n
+
+volumes:
+  n8n_foodbank_data:

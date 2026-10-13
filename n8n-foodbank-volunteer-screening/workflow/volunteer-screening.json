@@ -1,0 +1,161 @@
+{
+  "name": "Food bank volunteer screening",
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "id": "5e1f0a10-7c21-4b0e-a001-0f00d0000001",
+      "name": "Sign-up webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "5e1f0a10-7c21-4b0e-a001-0f00d00000aa",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "volunteer-signup",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "5e1f0a10-7c21-4b0e-a001-0f00d0000002",
+      "name": "Screen sign-up (gpt-4o-mini)",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [240, 0],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "id"
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You screen volunteer sign-ups for the Millbrook Community Pantry, a food bank. Available shifts: warehouse sorting (minimum age 16, lifting up to 20 kg), front desk client intake (minimum age 18), and delivery driving (minimum age 21 and a valid driver's licence mentioned explicitly). Pick the single best-fitting role for the person, or \"none\" if they qualify for nothing. Set needs_followup to true when anything required is missing or unclear (age not stated, licence not mentioned for driving, conflicting availability) — never assume facts the sign-up does not state. Reply with a JSON object with exactly these keys: role (\"warehouse\", \"front_desk\", \"delivery\" or \"none\"), needs_followup (true or false), reason (one sentence), coordinator_note (one short sentence the volunteer coordinator can act on)."
+            },
+            {
+              "role": "user",
+              "content": "=Name: {{ $json.body.name }}\nAge: {{ $json.body.age ?? 'not given' }}\nAvailability: {{ $json.body.availability }}\nAbout them: {{ $json.body.about }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "__OPENAI_CREDENTIAL_ID__",
+          "name": "OpenAI (volunteer screening)"
+        }
+      }
+    },
+    {
+      "id": "5e1f0a10-7c21-4b0e-a001-0f00d0000003",
+      "name": "Needs follow-up?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [480, 0],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.message.content.needs_followup }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "5e1f0a10-7c21-4b0e-a001-0f00d0000004",
+      "name": "Queue for coordinator call",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [720, -120],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            { "id": "a1", "name": "volunteer", "type": "string", "value": "={{ $('Sign-up webhook').item.json.body.name }}" },
+            { "id": "a2", "name": "status", "type": "string", "value": "follow_up_call" },
+            { "id": "a3", "name": "suggested_role", "type": "string", "value": "={{ $json.message.content.role }}" },
+            { "id": "a4", "name": "reason", "type": "string", "value": "={{ $json.message.content.reason }}" },
+            { "id": "a5", "name": "coordinator_note", "type": "string", "value": "={{ $json.message.content.coordinator_note }}" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5e1f0a10-7c21-4b0e-a001-0f00d0000005",
+      "name": "Offer a shift",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [720, 120],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            { "id": "b1", "name": "volunteer", "type": "string", "value": "={{ $('Sign-up webhook').item.json.body.name }}" },
+            { "id": "b2", "name": "status", "type": "string", "value": "offer_shift" },
+            { "id": "b3", "name": "suggested_role", "type": "string", "value": "={{ $json.message.content.role }}" },
+            { "id": "b4", "name": "reason", "type": "string", "value": "={{ $json.message.content.reason }}" },
+            { "id": "b5", "name": "coordinator_note", "type": "string", "value": "={{ $json.message.content.coordinator_note }}" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5e1f0a10-7c21-4b0e-a001-0f00d0000006",
+      "name": "Reply to form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [960, 0],
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Sign-up webhook": {
+      "main": [[{ "node": "Screen sign-up (gpt-4o-mini)", "type": "main", "index": 0 }]]
+    },
+    "Screen sign-up (gpt-4o-mini)": {
+      "main": [[{ "node": "Needs follow-up?", "type": "main", "index": 0 }]]
+    },
+    "Needs follow-up?": {
+      "main": [
+        [{ "node": "Queue for coordinator call", "type": "main", "index": 0 }],
+        [{ "node": "Offer a shift", "type": "main", "index": 0 }]
+      ]
+    },
+    "Queue for coordinator call": {
+      "main": [[{ "node": "Reply to form", "type": "main", "index": 0 }]]
+    },
+    "Offer a shift": {
+      "main": [[{ "node": "Reply to form", "type": "main", "index": 0 }]]
+    }
+  }
+}
