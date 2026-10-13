@@ -1,0 +1,24 @@
+[
+  {
+    "id": "ember-wren",
+    "common_name": "Emberbreast Wren",
+    "habitat": "wet heather moorland edges",
+    "pose_note": "perched on a heather sprig",
+    "field_marks": [
+      "rust-orange breast patch",
+      "white eyebrow stripe",
+      "short cocked tail with black barring"
+    ]
+  },
+  {
+    "id": "tidewatch-plover",
+    "common_name": "Tidewatch Plover",
+    "habitat": "pebbly estuary shorelines",
+    "pose_note": "standing on wet shingle",
+    "field_marks": [
+      "single black neck collar",
+      "yellow orbital ring",
+      "orange legs with a pale bill base"
+    ]
+  }
+]
