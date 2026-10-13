@@ -1,0 +1,26 @@
+[
+  {
+    "id": "APP-201",
+    "applicant": "Linden Street Tool Library",
+    "zip": "94110",
+    "category": "community-space",
+    "requested_usd": 1800,
+    "summary": "We lend drills, ladders and saws to renters who cannot buy them. The grant would replace two worn-out table saws and pay for a safety workshop series for first-time borrowers. Last year we served 410 households with two volunteers."
+  },
+  {
+    "id": "APP-202",
+    "applicant": "Pinecrest Youth Chess Club",
+    "zip": "94110",
+    "category": "youth",
+    "requested_usd": 4200,
+    "summary": "A weekly after-school chess club for ages 8-14. Funds would buy 20 tournament sets and clocks and cover entry fees for a regional tournament. No staff, no venue plan yet, and no budget breakdown beyond the total."
+  },
+  {
+    "id": "APP-203",
+    "applicant": "Harbor View Garden Collective",
+    "zip": "94901",
+    "category": "green-space",
+    "requested_usd": 2500,
+    "summary": "We want to turn a vacant lot across the bay into a vegetable garden with raised beds and a rain barrel system."
+  }
+]
