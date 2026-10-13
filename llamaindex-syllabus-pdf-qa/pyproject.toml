@@ -1,0 +1,22 @@
+[project]
+name = "llamaindex-syllabus-pdf-qa"
+version = "0.1.0"
+description = "Q&A over course-syllabus PDFs with LlamaIndex, traced with Opik and checked by a clause-level test suite"
+requires-python = ">=3.12"
+dependencies = [
+    "llama-index-core>=0.14.0",
+    "llama-index-llms-openai>=0.5.0",
+    "llama-index-embeddings-openai>=0.5.0",
+    "python-dotenv>=1.0",
+    "reportlab>=4.0",
+]
+
+[project.scripts]
+syllabus-qa = "syllabus_qa.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["syllabus_qa"]
