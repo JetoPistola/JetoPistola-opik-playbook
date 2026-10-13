@@ -1,10 +1,16 @@
-"""Rulebook referee: RAG over fictional board-game rulebooks.
+"""Rulebook referee: RAG over fictional board-game rulebooks, traced with Opik.
 
 Graph: retrieve (embedding search over rule sections) -> generate (gpt-4o-mini).
+Retrieval is a named @opik.track(type="tool") function so it always shows up
+as its own span.
 """
 
 import os
 import pathlib
+
+PROJECT_NAME = "langgraph-boardgame-rules-rag"
+# Set before opik is imported so every trace lands in this project, not "Default Project".
+os.environ["OPIK_PROJECT_NAME"] = PROJECT_NAME
 
 import dotenv
 
@@ -14,9 +20,11 @@ for parent in pathlib.Path(__file__).resolve().parents:
         dotenv.load_dotenv(parent / ".env")
         break
 
+import opik
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langgraph.graph import END, START, StateGraph
+from opik.integrations.langchain import OpikTracer, track_langgraph
 from typing_extensions import TypedDict
 
 DOCS_DIR = pathlib.Path(__file__).parent / "docs"
@@ -40,6 +48,9 @@ store = InMemoryVectorStore.from_texts(
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 
+# Explicit tool span: the OpikTracer can drop LangChain retriever runs, so retrieval is
+# tracked by hand and always appears as "search_rulebooks" (type tool) inside the retrieve node.
+@opik.track(name="search_rulebooks", type="tool")
 def search_rulebooks(question: str, k: int = TOP_K) -> list[str]:
     """Return the k rule sections closest to the question."""
     return [d.page_content for d in store.similarity_search(question, k=k)]
@@ -74,7 +85,11 @@ builder.add_edge(START, "retrieve")
 builder.add_edge("retrieve", "generate")
 builder.add_edge("generate", END)
 
-app = builder.compile()
+# OpikTracer turns each graph call into a trace: one span per node, plus an llm span
+# (prompt, token usage, cost) for the ChatOpenAI call inside generate.
+tracer = OpikTracer(project_name=PROJECT_NAME, tags=["boardgame-rag"])
+# track_langgraph attaches the tracer to the compiled graph so callers need no config.
+app = track_langgraph(builder.compile(), tracer)
 
 
 def main() -> None:
@@ -86,6 +101,10 @@ def main() -> None:
     ]:
         result = app.invoke({"question": question})
         print(f"Q: {question}\nA: {result['answer']}\n")
+
+    # Traces are sent in the background; flush so a short script doesn't exit before they upload.
+    tracer.flush()
+    opik.flush_tracker()
 
 
 if __name__ == "__main__":

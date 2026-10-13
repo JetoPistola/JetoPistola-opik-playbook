@@ -1,9 +1,10 @@
 [project]
 name = "langgraph-boardgame-rules-rag"
 version = "0.1.0"
-description = "Rulebook Q&A over fictional board games: a two-node LangGraph graph."
+description = "Rulebook Q&A over fictional board games: a two-node LangGraph graph traced with Opik."
 requires-python = ">=3.12"
 dependencies = [
+    "opik==2.2.99",
     "langchain>=1.0",
     "langchain-openai>=1.0",
     "langgraph>=1.0",
