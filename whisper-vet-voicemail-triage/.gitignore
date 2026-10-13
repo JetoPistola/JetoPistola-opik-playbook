@@ -1,0 +1,8 @@
+.env
+.venv/
+__pycache__/
+uv.lock
+*.pyc
+audio/
+out/
+opik_test_suite_reports/
