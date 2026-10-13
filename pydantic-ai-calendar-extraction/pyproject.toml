@@ -1,0 +1,20 @@
+[project]
+name = "pydantic-ai-calendar-extraction"
+version = "0.1.0"
+description = "Pydantic AI agent that extracts typed calendar events from messy messages"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic-ai>=2.31.1",
+    "python-dotenv>=1.2.3",
+]
+
+[project.scripts]
+calendar-extraction = "calendar_extraction.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["calendar_extraction"]
