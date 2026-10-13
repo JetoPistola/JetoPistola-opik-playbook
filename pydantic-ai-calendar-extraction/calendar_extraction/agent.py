@@ -1,9 +1,11 @@
-"""The extraction agent."""
+"""The extraction agent and its traced entry point."""
 
 from typing import Any
 
+import opik
 from pydantic_ai import Agent
 
+from . import PROJECT_NAME
 from .models import CalendarEvent
 
 MODEL = "openai:gpt-4o-mini"
@@ -14,8 +16,6 @@ TODAY = "2026-03-02"
 agent = Agent(
     MODEL,
     output_type=CalendarEvent,
-    # Resolve the provider lazily so importing the module (and tests) needs no API key.
-    defer_model_check=True,
     system_prompt=(
         "You turn messy emails, chat messages and voicemail notes into one "
         f"calendar event. Today is Monday {TODAY}; resolve relative days from it. "
@@ -26,6 +26,9 @@ agent = Agent(
 )
 
 
+# opik.track makes each call one trace named "extract_event" (input = message, output = typed record);
+# the Pydantic AI spans from the OTel bridge nest under it. Without it they arrive as separate traces.
+@opik.track(project_name=PROJECT_NAME, name="extract_event")
 def extract_event(message: str) -> dict[str, Any]:
-    """One extraction: messy message in, typed event out."""
+    """One traced extraction: messy message in, typed event out."""
     return agent.run_sync(message).output.model_dump()
