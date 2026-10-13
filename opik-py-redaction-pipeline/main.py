@@ -1,12 +1,13 @@
 """Document redaction, traced by hand with the low-level Opik client.
 
-No @opik.track, no track_openai: every trace, span and usage block below is an
-explicit SDK call. Read top to bottom.
+No @opik.track, no track_openai: every trace, span, usage block and feedback
+score below is an explicit SDK call. Read top to bottom.
 """
 
 import json
 import os
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -20,6 +21,9 @@ load_dotenv(find_dotenv(usecwd=False))  # walks up to the repo-root .env
 PROJECT = os.getenv("OPIK_PROJECT_NAME", "opik-py-redaction-pipeline")
 MODEL = "gpt-4o-mini"
 DATA = Path(__file__).parent / "data"
+# Demo switches for the flush/end lessons (see the README "Poke around" section).
+SKIP_FLUSH = "--no-flush" in sys.argv  # experiment: lose the batch on purpose
+SKIP_END = "--no-end" in sys.argv      # experiment: never close the spans
 
 # The regex stage only knows these shapes. That is deliberate: it is cheap and
 # precise, and the LLM stage is supposed to cover what it cannot.
@@ -45,6 +49,14 @@ openai_client = OpenAI()
 
 def now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def closed(t: datetime) -> datetime | None:
+    """The end_time to send. With --no-end it is None, so the span stays 'open'.
+
+    Opik: a span or trace sent without end_time arrives with no duration.
+    """
+    return None if SKIP_END else t
 
 
 def regex_detect(text: str) -> list[dict]:
@@ -75,7 +87,7 @@ def process(path: Path, truth: list[str]) -> tuple[str, float, list[str]]:
     t0 = now()
     regex_hits = regex_detect(text)
     # guardrail span: shows up as a "guardrail" step under the trace, with the findings as output.
-    spans.append(dict(name="regex-detector", type="guardrail", start_time=t0, end_time=now(),
+    spans.append(dict(name="regex-detector", type="guardrail", start_time=t0, end_time=closed(now()),
                       input={"text": text}, output={"findings": regex_hits},
                       metadata={"patterns": list(PATTERNS)}))
 
@@ -96,7 +108,7 @@ def process(path: Path, truth: list[str]) -> tuple[str, float, list[str]]:
     # after the call returns so it is sent once, complete (no create-then-update).
     spans.append(dict(
         name=f"chat {MODEL}", type="llm", parent_span_id=contextual_id,
-        start_time=t_llm, end_time=t_llm_end,
+        start_time=t_llm, end_time=closed(t_llm_end),
         input={"messages": messages}, output={"findings": llm_hits},
         # Hand-recorded usage: model + provider + token counts is what lets Opik
         # compute total_estimated_cost on the server.
@@ -109,14 +121,14 @@ def process(path: Path, truth: list[str]) -> tuple[str, float, list[str]]:
     ))
     # general span that owns the llm child: id=contextual_id is what makes the nesting explicit.
     spans.append(dict(name="contextual-detector", type="general", id=contextual_id,
-                      start_time=t0, end_time=now(),
+                      start_time=t0, end_time=closed(now()),
                       input={"file": path.name}, output={"findings": llm_hits}))
 
     # Stage 3: redactor -> tool span
     t0 = now()
     redacted = redact(text, regex_hits + llm_hits)
     # tool span: its output is the redacted text, so leaks are readable in context.
-    spans.append(dict(name="redactor", type="tool", start_time=t0, end_time=now(),
+    spans.append(dict(name="redactor", type="tool", start_time=t0, end_time=closed(now()),
                       input={"n_regex": len(regex_hits), "n_llm": len(llm_hits)},
                       output={"redacted_text": redacted}))
 
@@ -125,7 +137,7 @@ def process(path: Path, truth: list[str]) -> tuple[str, float, list[str]]:
     t0 = now()
     residual = regex_detect(redacted)
     # guardrail span: passes whenever the regexes find nothing, even if names leaked.
-    spans.append(dict(name="verifier", type="guardrail", start_time=t0, end_time=now(),
+    spans.append(dict(name="verifier", type="guardrail", start_time=t0, end_time=closed(now()),
                       input={"redacted_text": redacted},
                       output={"passed": not residual, "residual": residual}))
 
@@ -133,7 +145,7 @@ def process(path: Path, truth: list[str]) -> tuple[str, float, list[str]]:
     # it appears as a row in the project's Traces tab.
     trace = client.trace(
         id=trace_id, name="redact-document", project_name=PROJECT, tags=["redaction"],
-        start_time=t_trace, end_time=now(),
+        start_time=t_trace, end_time=closed(now()),
         input={"file": path.name, "chars": len(text)},
         output={"redacted_text": redacted, "verifier_passed": not residual},
     )
@@ -149,11 +161,28 @@ def process(path: Path, truth: list[str]) -> tuple[str, float, list[str]]:
 
 def main() -> None:
     truth = json.loads((DATA / "ground_truth.json").read_text())
+    scores = []
     for path in sorted(DATA.glob("*.txt")):
-        process(path, truth[path.name])
-    # The SDK sends in a background thread; flush() blocks until every queued
-    # trace and span is delivered. Without it a short script can exit and lose some.
+        trace_id, recall, leaked = process(path, truth[path.name])
+        # Feedback score payloads for the trace we just sent: the values come from
+        # data/ground_truth.json, which the pipeline itself never sees.
+        scores += [
+            {"id": trace_id, "name": "redaction_recall", "value": recall,
+             "reason": f"leaked: {leaked}" if leaked else "every ground-truth item was removed"},
+            {"id": trace_id, "name": "leaked_pii_count", "value": float(len(leaked)),
+             "reason": ", ".join(leaked) or "none"},
+        ]
+    if SKIP_FLUSH:
+        print("--no-flush: exiting without client.flush()")
+        # os._exit skips atexit hooks too: with no flush, the traces still queued in the
+        # background sender are lost (3 of 4 arrived in my run) and no scores are sent.
+        os._exit(0)
+    # Flush first: a score can only attach to a trace Opik already has.
     client.flush()
+    # Feedback scores show up as columns in the Traces tab (one row per trace).
+    client.log_traces_feedback_scores(scores, project_name=PROJECT)
+    client.flush()  # ship the score batch too
+    opik.flush_tracker()
     print(f"done -> project '{PROJECT}'")
 
 
