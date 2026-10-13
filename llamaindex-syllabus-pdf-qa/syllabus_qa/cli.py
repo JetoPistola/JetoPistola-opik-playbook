@@ -2,7 +2,9 @@
 
 import argparse
 
-from syllabus_qa import config
+import opik
+
+from syllabus_qa import config  # noqa: F401  (sets project + env before opik loads)
 
 
 def _cmd_build() -> None:
@@ -37,10 +39,14 @@ def main() -> None:
     ask_p.add_argument("question")
     args = parser.parse_args()
 
-    if args.cmd == "build":
-        _cmd_build()
-    elif args.cmd == "ask":
-        _cmd_ask(args.question)
-    else:  # default: build + demo questions
-        _cmd_build()
-        _cmd_demo()
+    try:
+        if args.cmd == "build":
+            _cmd_build()
+        elif args.cmd == "ask":
+            _cmd_ask(args.question)
+        else:  # default: build + demo questions
+            _cmd_build()
+            _cmd_demo()
+    finally:
+        # Traces are sent in the background; flush so a short-lived CLI run doesn't exit before they upload.
+        opik.flush_tracker()
