@@ -19,14 +19,14 @@ OPTS = dict(
 class GrantReviewWorkflow:
     @workflow.run
     async def run(self, inp: ReviewInput) -> ReviewResult:
-        app = inp.application
+        app, h = inp.application, inp.trace_headers
 
-        elig = await workflow.execute_activity(check_eligibility, app, **OPTS)
+        elig = await workflow.execute_activity(check_eligibility, args=[app, h], **OPTS)
         if not elig["eligible"]:
             return ReviewResult(app["id"], "rejected", "; ".join(elig["problems"]))
 
-        scored = await workflow.execute_activity(score_application, app, **OPTS)
-        budget = await workflow.execute_activity(check_budget_remaining, app, **OPTS)
+        scored = await workflow.execute_activity(score_application, args=[app, h], **OPTS)
+        budget = await workflow.execute_activity(check_budget_remaining, args=[app, h], **OPTS)
 
         if not budget["fits"]:
             return ReviewResult(

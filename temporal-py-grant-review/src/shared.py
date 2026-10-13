@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ from dotenv import load_dotenv
 TASK_QUEUE = "grant-review"
 TEMPORAL_PORT = 7243
 TEMPORAL_ADDRESS = f"localhost:{TEMPORAL_PORT}"
+PROJECT_NAME = "temporal-py-grant-review"
 MODEL = "gpt-4o-mini"
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -22,11 +24,13 @@ MAX_GRANT_USD = 5000
 
 
 def load_env() -> None:
-    """Load .env from this folder or the nearest parent."""
+    """Load .env from this folder or the nearest parent, then pin the Opik project."""
     for folder in [ROOT, *ROOT.parents]:
         if (folder / ".env").exists():
             load_dotenv(folder / ".env")
             break
+    # Both processes read OPIK_PROJECT_NAME, so client and worker spans land in one project.
+    os.environ["OPIK_PROJECT_NAME"] = PROJECT_NAME
 
 
 def load_applications() -> list[dict]:
@@ -36,6 +40,9 @@ def load_applications() -> list[dict]:
 @dataclass
 class ReviewInput:
     application: dict
+    # Opik distributed-trace headers, carried as a plain dict (the workflow sandbox
+    # never touches Opik; only activities do).
+    trace_headers: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass

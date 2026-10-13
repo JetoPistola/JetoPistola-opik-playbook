@@ -1,11 +1,12 @@
 [project]
 name = "temporal-py-grant-review"
 version = "0.1.0"
-description = "A durable grant-review workflow on Temporal with a flaky activity, a separate worker process and OpenAI scoring."
+description = "A durable grant-review workflow on Temporal whose Opik trace spans a client process and a separate worker process."
 requires-python = ">=3.12"
 dependencies = [
     "temporalio>=1.8",
     "openai>=1.60",
+    "opik==2.2.99",
     "python-dotenv>=1.0",
 ]
 

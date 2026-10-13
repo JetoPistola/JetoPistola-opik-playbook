@@ -1,10 +1,11 @@
-"""Worker process: runs workflows and activities until SIGTERM."""
+"""Worker process: runs workflows and activities, exports Opik spans, flushes on SIGTERM."""
 
 from __future__ import annotations
 
 import asyncio
 import signal
 
+import opik
 from temporalio.client import Client
 from temporalio.worker import Worker
 
@@ -29,7 +30,10 @@ async def main() -> None:
     ):
         print("worker: ready", flush=True)
         await stop.wait()
-    print("worker: exiting", flush=True)
+    # The demo stops this worker with SIGTERM; flush here so spans still queued in
+    # this process reach Opik before it exits, otherwise the worker half of the trace is lost.
+    opik.flush_tracker()
+    print("worker: flushed Opik and exiting", flush=True)
 
 
 if __name__ == "__main__":
