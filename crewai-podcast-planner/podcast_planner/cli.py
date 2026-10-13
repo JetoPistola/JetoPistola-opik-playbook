@@ -7,6 +7,13 @@ from dotenv import load_dotenv
 DEFAULT_BRIEF = "An episode on why the Northern Reach's foghorns fell silent, built around a retired keeper's story."
 
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="podcast-planner", description=__doc__)
+    parser.add_argument("brief", nargs="?", default=DEFAULT_BRIEF, help="the episode brief")
+    parser.add_argument("--notes", type=Path, default=None, help="path to a notes markdown file")
+    return parser
+
+
 def main() -> None:
     # Load the nearest .env walking up from here (repo root in the playbook).
     for parent in Path(__file__).resolve().parents:
@@ -17,10 +24,7 @@ def main() -> None:
     os.environ.setdefault("CREWAI_DISABLE_TELEMETRY", "true")
     os.environ.setdefault("OTEL_SDK_DISABLED", "false")
 
-    parser = argparse.ArgumentParser(prog="podcast-planner", description=__doc__)
-    parser.add_argument("brief", nargs="?", default=DEFAULT_BRIEF, help="the episode brief")
-    parser.add_argument("--notes", type=Path, default=None, help="path to a notes markdown file")
-    args = parser.parse_args()
+    args = build_parser().parse_args()
 
     import opik
 
