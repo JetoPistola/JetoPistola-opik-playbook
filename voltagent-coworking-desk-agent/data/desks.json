@@ -1,0 +1,8 @@
+[
+  {"id":"HD-01","zone":"Harbor Loft","kind":"hot desk","price_eur":18,"monitor":false,"booked_dates":["2026-11-03"]},
+  {"id":"HD-02","zone":"Harbor Loft","kind":"hot desk","price_eur":18,"monitor":true,"booked_dates":[]},
+  {"id":"HD-03","zone":"Harbor Loft","kind":"hot desk","price_eur":18,"monitor":true,"booked_dates":["2026-11-03","2026-11-04"]},
+  {"id":"QR-07","zone":"Quiet Room","kind":"dedicated desk","price_eur":29,"monitor":true,"booked_dates":["2026-11-03"]},
+  {"id":"QR-08","zone":"Quiet Room","kind":"dedicated desk","price_eur":29,"monitor":true,"booked_dates":["2026-11-03"]},
+  {"id":"SB-02","zone":"Standing Bar","kind":"standing desk","price_eur":22,"monitor":false,"booked_dates":[]}
+]
