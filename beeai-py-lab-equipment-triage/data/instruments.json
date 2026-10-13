@@ -1,0 +1,20 @@
+[
+  {"id": "CF-02", "type": "centrifuge", "model": "Halden RX-5000 floor centrifuge", "room": "Bio Annex 114", "owner_lab": "Okonkwo Lab", "log": [
+    {"date": "2026-08-21", "entry": "Rotor R-12 inspected, no cracks. Cleared for 5000 rpm."},
+    {"date": "2026-09-30", "entry": "Operator reported mild vibration above 3500 rpm at the end of a run; rebalanced tubes, vibration stopped."},
+    {"date": "2026-10-06", "entry": "Second vibration report at 4200 rpm. Run aborted by imbalance sensor. Left in service pending review."}
+  ]},
+  {"id": "AC-01", "type": "autoclave", "model": "Steris-Vale 24L benchtop autoclave", "room": "Prep Room 3", "owner_lab": "Shared core", "log": [
+    {"date": "2026-09-02", "entry": "Door gasket replaced."},
+    {"date": "2026-10-01", "entry": "Biological indicator (spore strip) test passed."},
+    {"date": "2026-10-09", "entry": "Cycle 4 ended with error E-31 (pressure not held). Cleared by restart."}
+  ]},
+  {"id": "FZ-80-B", "type": "ultra-low freezer", "model": "Polarcore U700 -80C freezer", "room": "Cold Room B", "owner_lab": "Varga Lab (shared with 3 groups)", "log": [
+    {"date": "2026-07-15", "entry": "Door gasket cleaned, frost removed."},
+    {"date": "2026-10-10", "entry": "Alarm panel shows -71C after door was left ajar overnight. Setpoint -80C. Contents: patient-derived cell lines and antibody aliquots."}
+  ]},
+  {"id": "SP-07", "type": "spectrophotometer", "model": "Lumina UV-300 spectrophotometer", "room": "Chem 210", "owner_lab": "Teaching lab", "log": [
+    {"date": "2026-06-11", "entry": "Wavelength accuracy check passed with holmium filter."},
+    {"date": "2026-09-18", "entry": "Deuterium lamp hours: 1950 of 2000 rated."}
+  ]}
+]

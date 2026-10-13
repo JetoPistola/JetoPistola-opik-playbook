@@ -1,0 +1,6 @@
+{
+  "CF-02": {"interval_days": 180, "last_done": "2026-04-20", "next_due": "2026-10-17", "note": "Speed verification with tachometer."},
+  "AC-01": {"interval_days": 365, "last_done": "2026-01-12", "next_due": "2027-01-12", "note": "Annual temperature and pressure validation."},
+  "FZ-80-B": {"interval_days": 365, "last_done": "2026-03-05", "next_due": "2027-03-05", "note": "Probe calibration; alarm test is monthly."},
+  "SP-07": {"interval_days": 90, "last_done": "2026-07-14", "next_due": "2026-10-12", "note": "Photometric accuracy; overdue by one day as of 2026-10-13."}
+}

@@ -1,0 +1,6 @@
+{
+  "centrifuge": {"name": "Halden Service Desk", "who": "vendor", "phone": "ext. 5-0142", "email": "service@halden.example", "response": "next business day; emergency visit within 48h"},
+  "autoclave": {"name": "Priya Raman, Core Facilities Technician", "who": "internal", "phone": "ext. 5-0388", "email": "p.raman@lab.example", "response": "same day"},
+  "ultra-low freezer": {"name": "Facilities On-Call (cold storage)", "who": "internal", "phone": "ext. 5-0911", "email": "facilities-oncall@lab.example", "response": "within 30 minutes, 24/7; backup -80 capacity in Cold Room C"},
+  "spectrophotometer": {"name": "Tomas Lindqvist, Instrument Manager", "who": "internal", "phone": "ext. 5-0207", "email": "t.lindqvist@lab.example", "response": "within 2 business days"}
+}

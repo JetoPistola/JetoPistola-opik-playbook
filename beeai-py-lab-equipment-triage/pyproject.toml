@@ -1,0 +1,20 @@
+[project]
+name = "beeai-py-lab-equipment-triage"
+version = "0.1.0"
+description = "A BeeAI ReAct agent that triages lab-instrument problem reports, traced to Opik over OTLP."
+requires-python = ">=3.12"
+dependencies = [
+    "beeai-framework==0.1.85",
+    "openinference-instrumentation-beeai==0.1.30",
+    "opentelemetry-sdk",
+    "opentelemetry-exporter-otlp-proto-http",
+    "python-dotenv",
+    "opik==2.2.99",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
