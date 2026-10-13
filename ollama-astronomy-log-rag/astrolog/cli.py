@@ -5,9 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import opik  # noqa: E402
+from opik.integrations.langchain import OpikTracer  # noqa: E402
+
 from .answer import build_chain  # noqa: E402
-from .config import DOCS_DIR  # noqa: E402
+from .config import PROJECT_NAME  # noqa: E402
 from .ingest import load_chunks  # noqa: E402
+from .config import DOCS_DIR  # noqa: E402
 from .store import build_store  # noqa: E402
 
 DEMO_QUESTIONS = [
@@ -18,8 +22,9 @@ DEMO_QUESTIONS = [
 ]
 
 
-def _ask(chain, question: str) -> str:
-    return chain.invoke(question)
+def _ask(chain, tracer, question: str) -> str:
+    # The OpikTracer callback turns each chain run into one trace, with a child span per step.
+    return chain.invoke(question, config={"callbacks": [tracer]})
 
 
 def cmd_ingest(_args) -> None:
@@ -30,8 +35,13 @@ def cmd_ingest(_args) -> None:
 def _run(questions: list[str]) -> None:
     store = build_store()
     chain = build_chain(store)
+    # One tracer for all questions: each invoke becomes its own trace in the project, tagged for filtering.
+    tracer = OpikTracer(project_name=PROJECT_NAME, tags=["ollama", "local-rag"])
     for q in questions:
-        print(f"Q: {q}\nA: {_ask(chain, q)}\n")
+        print(f"Q: {q}\nA: {_ask(chain, tracer, q)}\n")
+    # Spans are sent in the background; without a flush a short CLI run can exit before they arrive.
+    opik.flush_tracker()
+    print(f"Done. Open the '{PROJECT_NAME}' project in Opik.")
 
 
 def main() -> None:

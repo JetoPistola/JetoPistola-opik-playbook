@@ -1,12 +1,13 @@
 [project]
 name = "ollama-astronomy-log-rag"
 version = "0.1.0"
-description = "Fully local RAG over amateur-astronomy observing logs: Ollama + LangChain"
+description = "Fully local RAG over amateur-astronomy observing logs: Ollama + LangChain, traced with Opik, zero cloud LLM calls"
 requires-python = ">=3.12"
 dependencies = [
     "langchain-core>=1.0",
     "langchain-ollama>=1.0",
     "numpy>=2.0",
+    "opik==2.2.99",
     "python-dotenv>=1.0",
 ]
 
@@ -19,3 +20,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["astrolog"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
