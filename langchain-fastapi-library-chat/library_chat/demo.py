@@ -57,4 +57,5 @@ def main() -> None:
     finally:
         srv.should_exit = True
         thread.join(timeout=10)
-    print("Done.")
+        server.flush()
+    print(f'Done. Open project "{server.PROJECT_NAME}" in Opik.')

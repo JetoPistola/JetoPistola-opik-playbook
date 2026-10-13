@@ -3,6 +3,8 @@ import json
 import re
 from pathlib import Path
 
+import opik
+
 CATALOG = json.loads((Path(__file__).parent.parent / "data" / "catalog.json").read_text())
 STOP = {"a", "an", "the", "i", "me", "my", "is", "are", "do", "you", "have", "any", "for", "to", "of",
         "and", "or", "it", "that", "this", "what", "something", "something", "like", "want", "can", "in", "on", "with", "about", "please", "more", "one", "some", "got"}
@@ -12,6 +14,10 @@ def _words(text: str) -> set[str]:
     return {w for w in re.findall(r"[a-z0-9]+", text.lower()) if w not in STOP}
 
 
+# A named tool span: retrieval shows up as its own `search_catalog` step (type tool) inside
+# `prepare-context`, with the query and the matched books as input/output. We decorate it
+# ourselves instead of relying on the tracer to surface the retrieval.
+@opik.track(name="search_catalog", type="tool")
 def search_catalog(query: str, k: int = 3) -> list[dict]:
     """Rank books by keyword overlap with title, genre, tags and summary."""
     q = _words(query)
