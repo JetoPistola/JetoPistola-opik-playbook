@@ -1,0 +1,21 @@
+[project]
+name = "ollama-astronomy-log-rag"
+version = "0.1.0"
+description = "Fully local RAG over amateur-astronomy observing logs: Ollama + LangChain"
+requires-python = ">=3.12"
+dependencies = [
+    "langchain-core>=1.0",
+    "langchain-ollama>=1.0",
+    "numpy>=2.0",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+astrolog = "astrolog.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["astrolog"]
