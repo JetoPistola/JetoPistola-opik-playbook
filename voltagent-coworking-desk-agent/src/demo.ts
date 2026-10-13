@@ -24,11 +24,14 @@ if (!process.env.OPENAI_API_KEY) {
   process.exit(1);
 }
 
-// Import after env is loaded.
+// Import after env is loaded: the exporter reads it on construction.
 const { VoltAgent } = await import("@voltagent/core");
+const { buildObservability, PROJECT_NAME } = await import("./telemetry/observability.ts");
 const { deskAgent } = await import("./agent/deskAgent.ts");
 
-new VoltAgent({ agents: { deskAgent } }); // no server option: stays in-process
+const observability = buildObservability();
+// Registering the observability instance makes VoltAgent emit its spans to the Opik exporter.
+new VoltAgent({ agents: { deskAgent }, observability }); // no server option: stays in-process
 
 const REQUESTS = [
   "What does the Quiet Room offer? I need somewhere without phone calls.",
@@ -42,5 +45,7 @@ for (const [i, q] of REQUESTS.entries()) {
   console.log(`Assistant: ${r.text}`);
 }
 
-console.log("\nDone.");
+// shutdown() flushes the batch exporter; without it the process exits before the spans reach Opik.
+await observability.shutdown(); // flush the batch exporter
+console.log(`\nDone. Open the "${PROJECT_NAME}" project in Opik.`);
 process.exit(0);
