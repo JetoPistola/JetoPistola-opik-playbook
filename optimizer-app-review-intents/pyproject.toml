@@ -1,0 +1,14 @@
+[project]
+name = "optimizer-app-review-intents"
+version = "0.1.0"
+description = "Opik Agent Optimizer tunes a prompt that sorts habit-tracker app-store reviews into intents"
+requires-python = ">=3.12"
+dependencies = [
+    "opik-optimizer==3.2.0",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
