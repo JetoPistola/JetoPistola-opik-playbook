@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type OpenAI from "openai";
+import type { Opik, Trace } from "opik";
+import { trackOpenAI } from "opik-openai";
 
 const appDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -64,12 +66,14 @@ export const conversations = [
 export interface TurnRecord {
   threadId: string;
   turn: number;
+  trace: Trace;
   reply: string;
   promptTokens: number;
   completionTokens: number;
 }
 
 export async function advise(
+  client: Opik,
   openai: OpenAI,
   threadId: string,
   turn: number,
@@ -77,16 +81,31 @@ export async function advise(
   userText: string,
 ): Promise<TurnRecord> {
   history.push({ role: "user", content: userText });
-  const res = await openai.chat.completions.create({
+  // One trace per turn; sharing a threadId is what makes Opik show the turns as one conversation
+  // in the Threads tab. trackOpenAI has no threadId option, so we own the trace and pass it as parent.
+  const trace = client.trace({
+    name: "advise-turn",
+    threadId,
+    input: { message: userText, turn },
+    metadata: { turn, shop: catalog.shop },
+  });
+  // Wrapping with parent: trace nests the model call under this trace as a child span named
+  // advisor-llm, carrying the message array, token usage and cost (the span type is `general`, not `llm`).
+  const tracked = trackOpenAI(openai, { client, parent: trace, generationName: "advisor-llm" });
+  const res = await tracked.chat.completions.create({
     model: MODEL,
     temperature: 0.2,
     messages: history,
   });
   const reply = res.choices[0]?.message?.content ?? "";
   history.push({ role: "assistant", content: reply });
+  // Record the reply as the trace output and close it; without end() the trace has no end time.
+  trace.update({ output: { reply } });
+  trace.end();
   return {
     threadId,
     turn,
+    trace,
     reply,
     promptTokens: res.usage?.prompt_tokens ?? 0,
     completionTokens: res.usage?.completion_tokens ?? 0,
@@ -106,4 +125,30 @@ export function priceAccuracy(reply: string): number {
   for (let k = 0; k < 3; k++) for (const s of [...sums]) for (const v of known) sums.add(Math.round((s + v) * 100) / 100);
   const ok = amounts.filter((a) => sums.has(Math.round(a * 100) / 100)).length;
   return Number((ok / amounts.length).toFixed(2));
+}
+
+type FeedbackScores = Parameters<Opik["logTracesFeedbackScores"]>[0];
+
+// Builds the post-run feedback: price-accuracy on every turn's trace, user-satisfaction on each
+// conversation's last turn. These become the Feedback scores columns in the Traces tab.
+export function buildFeedbackScores(all: TurnRecord[]): FeedbackScores {
+  const scores: FeedbackScores = [];
+  for (const rec of all) {
+    scores.push({
+      id: rec.trace.data.id,
+      name: "price-accuracy",
+      value: priceAccuracy(rec.reply),
+      reason: "share of quoted dollar amounts that match the price list",
+    });
+  }
+  for (const convo of conversations) {
+    const last = [...all].reverse().find((r) => r.threadId === convo.threadId)!;
+    scores.push({
+      id: last.trace.data.id,
+      name: "user-satisfaction",
+      value: convo.happy ? 1 : 0,
+      reason: convo.happy ? "rider clicked thumbs-up" : "rider clicked thumbs-down: total felt too high",
+    });
+  }
+  return scores;
 }
