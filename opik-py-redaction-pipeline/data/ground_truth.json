@@ -1,0 +1,17 @@
+{
+  "volunteer_roster.txt": [
+    "Marisol Vandergriff", "marisol.v@harborlane-garden.example", "555-0142",
+    "Tobias Achterberg", "14 Quillfeather Court", "555-0177",
+    "Imelda Okonkwo-Ruiz", "imelda.ruiz@mailbox-fern.example", "Allergic to bee stings",
+    "Desmond Pell", "9 Tamarind Row", "555-0163", "KRT-4471"
+  ],
+  "rental_inquiry.txt": [
+    "Priyanka Soundararajan", "priyanka.s@tidewater-mail.example", "221 Larkspur Avenue, Apt 6",
+    "555-0198", "482-55-1907", "Ellis Thackeray"
+  ],
+  "appointment_note.txt": [
+    "Anselm Dragomir", "3 March 1987", "type 2 diabetes", "five five five, oh one four two",
+    "58 Heron Mill Road", "Lucinda Dragomir", "lucinda.d@wren-post.example"
+  ],
+  "incident_email.txt": []
+}
