@@ -46,6 +46,8 @@ The PDFs are committed (about 2.5 KB each) and also regenerated on demand if mis
 
 ## Gotchas we hit
 
+**The answers say "the excerpts do not cover this" and the retrieved chunks are raw `%PDF-1.4 ... obj` text.** There is no error, only a log warning ("`llama-index-readers-file` package not found"). Cause: `SimpleDirectoryReader` lives in `llama-index-core`, but the PDF reader lives in the separate `llama-index-readers-file` package, and installing core alone does not pull it in. Without it, the reader falls back to reading each `.pdf` as plain text, so the index is built over PDF bytes. Fix: depend on it explicitly in `pyproject.toml` (`"llama-index-readers-file>=0.5.0"`), then `uv sync`. `tests/test_index.py` fails if a chunk contains `%PDF`.
+
 **Two `index_construction` traces after one run.** The default `uv run syllabus-qa` command shows 2 `index_construction` traces next to the `query` ones. Cause: the demo step and the suite step each call `build_query_engine()`, and every call re-embeds the PDFs, so the global handler records a build each time. Fix: that is expected for the default command; if you want a single build, run `ask` or `suite` on its own, or build the engine once and pass it to both steps (`build_query_engine(index)` accepts an existing index).
 
 ## How it's put together
@@ -60,6 +62,7 @@ The PDFs are committed (about 2.5 KB each) and also regenerated on demand if mis
 - `tests/test_corpus.py` - the PDFs are present, valid and state the four policies.
 - `tests/test_cli.py` - subcommand parsing and dispatch.
 - `tests/test_suite_items.py` - shape and coverage of the nine clause items and the global assertion.
+- `tests/test_index.py` - the PDFs load as real text (guards the reader dependency) and the query engine honours `TOP_K`.
 - `tests/test_qa.py` - `ask()` over a mock LLM and mock embeddings, including a query with the Opik handler installed and tracking disabled.
 - `data/syllabi/` - the generated PDF corpus.
 
