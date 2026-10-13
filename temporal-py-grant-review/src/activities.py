@@ -8,13 +8,21 @@ becomes a child of the span that started the workflow in another process.
 from __future__ import annotations
 
 import json
+import os
 
 import opik
+from opik import opik_context
 from openai import AsyncOpenAI
 from opik.integrations.openai import track_openai
 from temporalio import activity
 
 from shared import BUDGET_LEFT_USD, ELIGIBLE_ZIPS, MAX_GRANT_USD, MODEL
+
+def _stamp() -> None:
+    # Metadata on the current span: Opik shows the worker's pid and role, so spans from the
+    # worker process can be told apart from the client's in the UI.
+    opik_context.update_current_span(metadata={"os_pid": os.getpid(), "process": "worker"})
+
 
 # track_openai wraps the client: each completion becomes an llm span with token usage and cost,
 # nested under the activity's span. project_name=None leaves the project to OPIK_PROJECT_NAME.
@@ -31,6 +39,7 @@ async def check_eligibility(application: dict, trace_headers: dict[str, str]) ->
 # @opik.track opens a "tool" span named check_eligibility.
 @opik.track(name="check_eligibility", type="tool")
 async def _check_eligibility(application: dict) -> dict:
+    _stamp()
     problems = []
     if application["zip"] not in ELIGIBLE_ZIPS:
         problems.append(f"ZIP {application['zip']} is outside the fund's service area")
@@ -47,6 +56,7 @@ async def score_application(application: dict, trace_headers: dict[str, str]) ->
 # A "general" span; the OpenAI call inside nests under it as an llm span.
 @opik.track(name="score_application", type="general")
 async def _score_application(application: dict) -> dict:
+    _stamp()
     response = await _client.chat.completions.create(
         model=MODEL,
         temperature=0,
@@ -87,6 +97,7 @@ async def check_budget_remaining(application: dict, trace_headers: dict[str, str
 # error info on the failed attempt's span, and the retry shows up as a second, clean span.
 @opik.track(name="check_budget_remaining", type="tool")
 async def _check_budget(application: dict, attempt: int) -> dict:
+    _stamp()
     # The ledger service is "down" on every first attempt; Temporal retries it.
     if attempt == 1:
         raise ConnectionError("ledger service unavailable (HTTP 503)")

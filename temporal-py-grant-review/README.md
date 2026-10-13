@@ -23,7 +23,7 @@ The glue is small. The starter calls `opik_context.get_distributed_trace_headers
 Open the `temporal-py-grant-review` project and the **Traces** tab. After a clean run there are 3 traces, named `grant-review:APP-201`, `grant-review:APP-202`, `grant-review:APP-203`.
 
 - **grant-review:APP-201** (approved, score 9) has 6 spans: root `review_grant_application`, then `check_eligibility`, `score_application` with a nested `chat_completion_create` LLM span (162 tokens), and finally **two** `check_budget_remaining` spans. The first carries error info, `ConnectionError: ledger service unavailable (HTTP 503)`; the second is clean. The trace total is about $0.00004.
-- Open both `check_budget_remaining` spans side by side: the first shows the `ConnectionError` in its error section, the second has no error and returns `"attempt": 2`. Every span in the trace, including the ones the worker process created, hangs under the client's `review_grant_application` root.
+- Click the root span and read its metadata: `os_pid` is the client's process id and `process` is `client`. Click any other span: `os_pid` is a different number and `process` is `worker`. That difference is the proof this is one trace across two processes.
 - **grant-review:APP-202** (waitlisted: score 4, and only $3,000 left in the youth category) has the same shape and a trace cost of about $0.00004.
 - **grant-review:APP-203** (rejected, ZIP 94901 is out of area) has just 2 spans, root plus `check_eligibility`, and no LLM cost. The workflow ended before spending a token.
 
@@ -64,6 +64,14 @@ opik.flush_tracker()
 **3. `TypeError: _check_eligibility() got an unexpected keyword argument 'opik_distributed_trace_headers'`** once you set `OPIK_TRACK_DISABLE=true`. With tracking disabled `@opik.track` passes keyword arguments through untouched instead of consuming the header argument. Do not disable tracking on a worker that forwards headers this way. In tests, `tests/conftest.py` replaces each tracked function with its undecorated body (`func.__wrapped__`) that ignores the keyword.
 
 **4. `AttributeError: 'ErrorInfoPublic' object has no attribute 'get'`** (and `TypeError: 'ErrorInfoPublic' object is not subscriptable` on `error_info["message"]`) when you read spans back with `client.search_spans(...)`. The spans that come back from the REST layer carry `error_info` as an object with `.exception_type`, `.message` and `.traceback`, not a dict. Use `span.error_info.exception_type` and guard with `if span.error_info:`.
+
+**5. Client and worker spans look identical, so "one trace, two processes" is invisible.** Every span has the same project, trace id and similar names, and nothing in the Opik UI says which OS process produced it. Stamp each span with the process id and a role right inside the tracked function:
+
+```python
+opik_context.update_current_span(metadata={"os_pid": os.getpid(), "process": "worker"})
+```
+
+The starter does the same with `"process": "client"`.
 
 ## How it's put together
 

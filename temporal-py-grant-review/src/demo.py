@@ -33,6 +33,9 @@ async def review(client: Client, application: dict) -> ReviewResult:
         tags=["temporal", application["category"]],
         metadata={"applicant": application["applicant"]},
     )
+    # Same stamp as the worker, with process=client: the pid difference proves the trace
+    # crossed two OS processes.
+    opik_context.update_current_span(metadata={"os_pid": os.getpid(), "process": "client"})
     # Serialises this span's identity into a plain dict; the worker process reads it back
     # to attach its spans to this trace.
     headers = opik_context.get_distributed_trace_headers()
