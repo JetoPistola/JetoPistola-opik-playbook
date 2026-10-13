@@ -1,4 +1,4 @@
-"""CLI: `build`, `ask "<question>"`, or no subcommand to do both."""
+"""CLI: `build`, `ask "<question>"`, `suite`, or no subcommand to do all three."""
 
 import argparse
 
@@ -31,12 +31,19 @@ def _cmd_demo() -> None:
         print(f"Q: {a.question}\nA: {a.text}\n")
 
 
+def _cmd_suite() -> None:
+    from syllabus_qa.index import build_query_engine
+    from syllabus_qa.suite import run_suite
+    run_suite(build_query_engine())
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="syllabus-qa")
     sub = parser.add_subparsers(dest="cmd")
     sub.add_parser("build", help="(re)generate the syllabus PDFs")
     ask_p = sub.add_parser("ask", help="ask one question")
     ask_p.add_argument("question")
+    sub.add_parser("suite", help="run the clause-level test suite")
     args = parser.parse_args()
 
     try:
@@ -44,9 +51,12 @@ def main() -> None:
             _cmd_build()
         elif args.cmd == "ask":
             _cmd_ask(args.question)
-        else:  # default: build + demo questions
+        elif args.cmd == "suite":
+            _cmd_suite()
+        else:  # default: build + demo questions + suite
             _cmd_build()
             _cmd_demo()
+            _cmd_suite()
     finally:
         # Traces are sent in the background; flush so a short-lived CLI run doesn't exit before they upload.
         opik.flush_tracker()

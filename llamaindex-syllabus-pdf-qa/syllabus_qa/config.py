@@ -1,4 +1,4 @@
-"""Shared settings: project name, paths, env loading, and model setup, and the Opik handler."""
+"""Shared settings: project name, paths, env loading, model setup and the Opik handler."""
 
 import os
 import pathlib

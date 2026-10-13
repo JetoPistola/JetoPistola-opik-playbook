@@ -13,6 +13,9 @@ dependencies = [
     "reportlab>=4.0",
 ]
 
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
 [project.scripts]
 syllabus-qa = "syllabus_qa.cli:main"
 
