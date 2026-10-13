@@ -13,3 +13,4 @@ dist/
 WORKLOG.md
 STATUS.md
 PLAN_DECISIONS.md
+.pytest_cache/
