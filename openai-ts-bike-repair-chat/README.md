@@ -17,7 +17,7 @@ A Node script on the plain OpenAI TypeScript SDK. For each turn it opens an Opik
 Open the `openai-ts-bike-repair-chat` project.
 
 - **Threads tab:** three threads, `rider-maya-flat-tire` (3 turns), `rider-omar-brake-squeal` (4 turns) and `rider-lena-ghost-shifting` (3 turns). Open one and the turns read top to bottom as a chat.
-- **Traces tab:** 10 traces named `advise-turn`, each with one child span, `advisor-llm`, holding the full message array sent to the model. Add the *Estimated cost* column: in the verified run costs were about $0.0001 per turn, rising within a thread as history is re-sent (Maya: $0.000100, $0.000107, $0.000115; prompt tokens 400, 491, 564). Omar's third turn, at 559 prompt tokens, is his most expensive at $0.000128; his fourth, at 652 tokens, costs $0.000121 because the reply is short.
+- **Traces tab:** 10 traces named `advise-turn`, each with one child span, `advisor-llm`, holding the full message array sent to the model. Add the *Estimated cost* column: in a typical run costs are about $0.0001 per turn, rising within a thread as history is re-sent (Maya: $0.000100, $0.000107, $0.000115; prompt tokens 400, 491, 564). Omar's third turn, at 559 prompt tokens, is his most expensive at $0.000128; his fourth, at 652 tokens, costs $0.000121 because the reply is short.
 - **Feedback scores columns:** `price-accuracy` is 1.0 on all 10 traces. `user-satisfaction` appears on the last turn of each thread: 1.0 for Maya and Omar, 0.0 for Lena. Filter on `user-satisfaction < 1` to jump straight to the unhappy conversation, then read its thread to see why.
 
 One honest detail: with this integration the child span shows up with type `general` rather than `llm`, though model usage and cost are still captured on it.

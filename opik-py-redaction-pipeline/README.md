@@ -27,7 +27,7 @@ After redaction, the script compares each output to `data/ground_truth.json` and
 
 ## See it in Opik
 
-Open the `opik-py-redaction-pipeline` project. The Traces tab lists four `redact-document` traces (one per file), each with two feedback-score columns. In my verified run:
+Open the `opik-py-redaction-pipeline` project. The Traces tab lists four `redact-document` traces (one per file), each with two feedback-score columns. In the run described here:
 
 | file | recall | leaked |
 |---|---|---|

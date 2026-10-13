@@ -21,7 +21,7 @@ One script (`main.py`) that:
 
 ## See it in Opik
 
-Open the `optimizer-app-review-intents` project and go to **Optimization runs**. You will find one completed run on the dataset `app-review-intents`, objective `intent_match`. In the verified run the optimizer evaluated 4 prompts on all 28 reviews:
+Open the `optimizer-app-review-intents` project and go to **Optimization runs**. You will find one completed run on the dataset `app-review-intents`, objective `intent_match`. In the run shown here the optimizer evaluated 4 prompts on all 28 reviews:
 
 | prompt | accuracy |
 |---|---|

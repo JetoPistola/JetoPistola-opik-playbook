@@ -27,12 +27,12 @@ The Opik side lives in `src/lib/server/telemetry.ts`: an OpenTelemetry `NodeSDK`
 
 Open the project **vercel-sveltekit-garden-chat**. After one demo run the Traces tab holds 10 rows, in two kinds:
 
-- **5 traces named `garden-chat-turn`**: one per streamed reply. Each has two spans: an `llm` span called `chat gpt-4o-mini` carrying the model name, token usage and estimated cost, and a `general` span called `step 1`. The input shows the full message array (the long system prompt with the allotment notes, then the history); the output is the final assembled reply even though it left the server as a stream. In the verified run the `llm` spans used 657, 711 and 771 tokens across the three turns of the tomato conversation: the history is re-sent each turn, so input grows. Cost per turn was about $0.0001 (0.00011 to 0.00014 USD).
+- **5 traces named `garden-chat-turn`**: one per streamed reply. Each has two spans: an `llm` span called `chat gpt-4o-mini` carrying the model name, token usage and estimated cost, and a `general` span called `step 1`. The input shows the full message array (the long system prompt with the allotment notes, then the history); the output is the final assembled reply even though it left the server as a stream. In one run the `llm` spans used 657, 711 and 771 tokens across the three turns of the tomato conversation: the history is re-sent each turn, so input grows. Cost per turn was about $0.0001 (0.00011 to 0.00014 USD).
 - **5 traces named `online_evaluation`**: the judge's own runs. Opik logs the rule's LLM call into the same project (an `llm_call` span of roughly 950 to 1,090 tokens each), which is why the count doubles. Filter by name if you only want the chat turns.
 
 On the Threads tab, the 5 chat traces collapse into **2 threads**: one with 3 turns (tomatoes, yellow leaves, slug pellets) and one with 2 (garlic, carrot fly). Click a thread to read it as a transcript.
 
-Back on the Traces tab, scroll to the feedback-scores column: every `garden-chat-turn` trace carries `answer_relevance` with the value 1.0 in the verified run (all 5). The scores arrive a few seconds after the trace, written by the backend, not by your code. Open Automation / Online evaluation for the project to see the rule `garden_answer_relevance`, 100% sampling, using `gpt-4o-mini`. Total spend for a full run, chat plus judge, came to about $0.0014.
+Back on the Traces tab, scroll to the feedback-scores column: every `garden-chat-turn` trace carries `answer_relevance` with the value 1.0 (all 5 in the run described here). The scores arrive a few seconds after the trace, written by the backend, not by your code. Open Automation / Online evaluation for the project to see the rule `garden_answer_relevance`, 100% sampling, using `gpt-4o-mini`. Total spend for a full run, chat plus judge, came to about $0.0014.
 
 ## Run it yourself
 
@@ -73,7 +73,7 @@ enrichSpan: ({ runtimeContext }) =>
 
 **4. `useChat` is not there.** `@ai-sdk/svelte` exports a `Chat` class (plus `Completion` and `StructuredObject`), not a hook. Use `new Chat({ transport: new DefaultChatTransport({ api: "/api/chat" }) })` and read `chat.messages` and `chat.status`.
 
-**5. SvelteKit 3 does not support the Node 20 this example targets.** `@sveltejs/kit@3` declares `engines.node >=22.17` (checked with `npm view @sveltejs/kit@3 engines`). Stay on SvelteKit 2 with `adapter-node` 5, as `package.json` does; the AI SDK v7 packages also print an engine warning on Node 20, which did not affect the verified run.
+**5. SvelteKit 3 does not support the Node 20 this example targets.** `@sveltejs/kit@3` declares `engines.node >=22.17` (checked with `npm view @sveltejs/kit@3 engines`). Stay on SvelteKit 2 with `adapter-node` 5, as `package.json` does; the AI SDK v7 packages also print an engine warning on Node 20, which is harmless.
 
 ## How it's put together
 

@@ -21,7 +21,7 @@ Open the **`litellm-reading-level-router`** project on the Traces tab. One run l
 | gpt-4o-mini-2024-07-18 | 9 | 1792 | $0.000581 | 1.62 s |
 | claude-haiku-4-5-20251001 | 9 | 2044 | $0.005312 | 1.44 s |
 
-Those are the numbers from our verification query summing each span's `total_estimated_cost`, and they equal the table the script prints. Haiku cost about 9x more on this workload yet was slightly faster. Open a Haiku trace for the age-8 rewrite and you will notice it often starts with a markdown `# Heading` that the OpenAI output does not have, a quirk invisible in an aggregate but obvious one click away.
+Those numbers are each span's `total_estimated_cost` summed per model, and they match the table the script prints. Haiku cost about 9x more on this workload yet was slightly faster. Open a Haiku trace for the age-8 rewrite and you will notice it often starts with a markdown `# Heading` that the OpenAI output does not have, a quirk invisible in an aggregate but obvious one click away.
 
 ## Run it yourself
 

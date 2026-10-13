@@ -25,7 +25,7 @@ One `ReActAgent` on `gpt-4o-mini` with three read-only tools over JSON files in 
 
 ## See it in Opik
 
-Open the project **beeai-py-lab-equipment-triage**. A verified run produced **3 traces**, each named `ReAct`, with their Input and Output columns filled: the input is the instructions plus the report, the output is the three-line decision.
+Open the project **beeai-py-lab-equipment-triage**. One run of `uv run main.py` produces **3 traces**, each named `ReAct`, with their Input and Output columns filled: the input is the instructions plus the report, the output is the three-line decision.
 
 Open the spectrophotometer trace (8 spans). It is a root `ReAct` span with seven children: four `OpenAIChatModel` spans (type `llm`, model `gpt-4o-mini`) and three tool spans, `lookup_instrument_log`, `check_calibration_schedule` and `find_service_contact`. Click a tool span and you see the arguments the model chose (`{"instrument_id": "SP-07"}`, then `{"instrument_type": "spectrophotometer"}`) and the JSON the tool returned, including the contact line "Tomas Lindqvist, ext. 5-0207". The calibration span returns `next_due: 2026-10-12`, which is why the final answer talks about calibration.
 
@@ -68,7 +68,7 @@ A run takes about 15 to 25 seconds and costs a fraction of a cent. For Opik Clou
 - **The trace is buried in hundreds of `new_token` spans.** BeeAI streams the model's answer, and the instrumentor turns every event it has no dedicated handler for into a child span named after the event, so each streamed chunk becomes a `new_token` leaf. Subclass the OTLP exporter and drop them before export: `kept = [s for s in spans if s.name != "new_token"]` in `DropTokenSpans.export` (see `tracing.py`).
 - **You look for per-iteration spans and find none.** The Python instrumentor records the current ReAct iteration as metadata on the `ReAct` root span (`metadata.iteration`, `metadata.iterations.N.*`) and only creates child spans for LLM calls, tools, `error` and `retry`. Follow the loop by the order of the sibling spans.
 - **Traces land in the wrong project, or nowhere.** The project comes from the `projectName` OTLP header and the workspace from `Comet-Workspace`; the exporter must also point at `<endpoint>/v1/traces`. For local Opik no `Authorization` header is sent; add it only when `OPIK_API_KEY` is set. `tests/test_tracing.py` pins this config.
-- **Cost is empty and some LLM spans show 0 tokens.** Seen in the verified run (see above): the OpenInference spans carry usage but no model-price mapping Opik uses for cost, and the tool-call turns of streamed calls report zero usage. Treat trace token totals as a lower bound.
+- **Cost is empty and some LLM spans show 0 tokens.** You can see this in the traces above: the OpenInference spans carry usage but no model-price mapping Opik uses for cost, and the tool-call turns of streamed calls report zero usage. Treat trace token totals as a lower bound.
 
 ## How it's put together
 

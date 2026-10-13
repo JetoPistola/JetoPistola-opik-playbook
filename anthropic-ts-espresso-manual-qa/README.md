@@ -24,7 +24,7 @@ Open the local Opik UI and pick the project **anthropic-ts-espresso-manual-qa**.
 
 **Traces tab.** After one run there are 19 traces: one named `answer_question` (the warm-up question about descaling) and 18 named `evaluation_task` (6 questions x 3 runs). Open `answer_question`: it holds a single `llm` child span, `anthropic.messages.create`, with model `claude-haiku-4-5-20251001`, provider `anthropic`, about 1,100 prompt tokens (the whole manual rides in the system prompt), around 100 completion tokens, and an estimated cost of roughly $0.0015. The output is the answer with its `<quote>` blocks. Across the project, all 37 `llm` spans have non-zero cost; the app's own Claude calls sum to about $0.029, and the judge calls add about $0.066.
 
-**Test suites.** Open the suite named `anthropic-ts-espresso-manual-qa` (6 items) and its latest run. In my verified run Opik showed **18 samples, pass rate 100%, 6 of 6 items passed**:
+**Test suites.** Open the suite named `anthropic-ts-espresso-manual-qa` (6 items) and its latest run. In the run these numbers come from, Opik showed **18 samples, pass rate 100%, 6 of 6 items passed**:
 
 - Passed 3/3 runs: warranty, red blinking light, double-shot time and dose, descaling and vinegar.
 - Passed 2/3 runs: "How do I steam milk safely?" and the 110V question, which the manual never covers. In one run each, the judge was stricter than in the others (for 110V, whether an honest "not covered" counts as answering the question). The execution policy absorbed that: an item needs 2 of 3 runs, so one strict verdict does not fail it.

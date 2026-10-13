@@ -10,7 +10,7 @@ An in-process VoltAgent `Agent` on `gpt-4o-mini` (no HTTP server) with four tool
 
 ## See it in Opik
 
-Open the project `voltagent-coworking-desk-agent` (workspace `default`). From a verified run there are 3 traces, one per request, each named `driftwood-desk-assistant`.
+Open the project `voltagent-coworking-desk-agent` (workspace `default`). After one run there are 3 traces, one per request, each named `driftwood-desk-assistant`.
 
 Open the second trace (the booking). Its tree is a root agent span, an `llm:generateText` span typed **llm**, and two spans typed **tool**: `tool.execution:check_desk_availability` and `tool.execution:book_desk`. On the llm span you will see model `gpt-4o-mini`, provider `openai`, usage of 518 prompt and 51 completion tokens, and an estimated cost of about $0.00011. The tool spans show clean arguments (for example `{"desk_id": "HD-02", "date": "2026-11-03", "member": "Priya Natarajan"}`) and the tool's reply, including booking id `BK-3101`. The traces table has populated Input, Output, Usage and Estimated cost columns; the three traces cost $0.00027 in total.
 

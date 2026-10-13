@@ -67,7 +67,7 @@ numbers will move a little between runs: the judge is an LLM too.
 3. `uv sync`
 4. `uv run main.py` (same as `uv run calendar-extraction`; add `--skip-suite` to only extract).
 5. Open the project named above; the experiment URL is printed at the end. A run
-   takes about a minute and cost about $0.01 in gpt-4o-mini calls (app plus judge) in the verified run.
+   takes about a minute and cost about $0.01 in gpt-4o-mini calls (app plus judge).
 
 ## Run the tests
 
