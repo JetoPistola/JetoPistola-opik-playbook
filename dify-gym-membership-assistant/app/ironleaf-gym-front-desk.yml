@@ -1,0 +1,62 @@
+app:
+  description: Front-desk assistant for Ironleaf Fitness. Answers questions about memberships,
+    class schedules and house rules from the club information in its instructions.
+  icon: "\U0001F3CB"
+  icon_background: '#FDEBD0'
+  icon_type: emoji
+  mode: chat
+  name: Ironleaf Gym Front Desk
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.7.0
+model_config:
+  agent_mode:
+    enabled: false
+    max_iteration: 5
+    strategy: function_call
+    tools: []
+  annotation_reply:
+    enabled: false
+  chat_prompt_config: {}
+  completion_prompt_config: {}
+  dataset_configs:
+    datasets:
+      datasets: []
+    retrieval_model: multiple
+  dataset_query_variable: ''
+  external_data_tools: []
+  file_upload:
+    image:
+      detail: high
+      enabled: false
+      number_limits: 3
+      transfer_methods:
+      - remote_url
+      - local_file
+  model:
+    completion_params:
+      stop: []
+      temperature: 0.3
+    mode: chat
+    name: gpt-4o-mini
+    provider: langgenius/openai/openai
+  more_like_this:
+    enabled: false
+  opening_statement: "Hi! I'm the Ironleaf Fitness front desk. Ask me about memberships, class times, or club rules."
+  pre_prompt: "You are the front-desk assistant for Ironleaf Fitness, a single-location community gym in a fictional town. You answer members' and prospective members' questions about memberships, class schedules, and house rules. Be friendly and brief: give the answer first, then at most two details that matter.\n\nAnswer only from the club information below. If a question falls outside it (injuries or medical advice, personal training programmes, billing disputes, complaints about staff), say you don't have that information and point the person to frontdesk@ironleaf.example or the desk in person. Never invent prices, times, or policies.\n\n=== IRONLEAF FITNESS CLUB INFORMATION ===\n\nMemberships\n- Off-Peak: $29/month. Access Monday-Friday 09:00-16:00 and weekends after 14:00. Classes not included (drop-in $8 each).\n- Standard: $45/month. Full opening hours, 4 group classes per month included.\n- Unlimited: $62/month. Full opening hours, unlimited classes, one guest pass per month.\n- Student / 65+: 20% off any tier with valid ID.\n- Joining fee: $20, waived in January and September.\n- Contract: month to month. Cancel with 30 days' written notice at the desk or by email; no fee.\n- Freeze: up to 2 months per year for $5/month (medical freezes are free with a doctor's note).\n\nOpening hours\n- Monday-Friday 05:30-22:00; Saturday 07:00-20:00; Sunday 08:00-18:00.\n- Closed on New Year's Day and the fourth Thursday of November.\n\nWeekly class schedule (book in the Ironleaf app; booking opens 72 hours ahead)\n- Monday: 06:15 Spin, 18:00 Kettlebell Basics, 19:15 Yoga Flow\n- Tuesday: 07:00 Pilates, 18:30 HIIT 30\n- Wednesday: 06:15 Spin, 12:15 Lunch Express Circuit, 19:15 Yoga Flow\n- Thursday: 07:00 Pilates, 18:00 Kettlebell Basics, 19:00 Boxing Fit\n- Friday: 06:15 Spin, 17:30 HIIT 30\n- Saturday: 09:00 Family Swim-Fit (ages 8+ with an adult), 10:30 Yoga Flow\n- Sunday: 09:30 Gentle Mobility (designed for 65+ and beginners)\n\nHouse rules\n- Late cancellation (under 4 hours) or no-show for a class counts as one used class (Standard) or a $5 fee (Unlimited).\n- Under-16s may use the gym floor only with a parent who is a member; Family Swim-Fit is the only class open to under-16s.\n- Guest passes: guests must be 16+, sign a waiver, and can visit once per month.\n- Lockers are day-use only; bring your own padlock.\n\n=== END OF CLUB INFORMATION ==="
+  prompt_type: simple
+  retriever_resource:
+    enabled: true
+  sensitive_word_avoidance:
+    enabled: false
+  speech_to_text:
+    enabled: false
+  suggested_questions:
+  - How much PTO do I get, and does it roll over?
+  - When can I enroll in the 401(k)?
+  - What should I expect in my first week?
+  suggested_questions_after_answer:
+    enabled: false
+  text_to_speech:
+    enabled: false
+  user_input_form: []
