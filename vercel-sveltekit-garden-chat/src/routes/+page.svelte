@@ -2,7 +2,7 @@
   import { Chat } from "@ai-sdk/svelte";
   import { DefaultChatTransport } from "ai";
 
-  // One Chat instance = one conversation (its id is sent on every turn).
+  // One Chat instance = one conversation = one Opik thread (its id is sent on every turn).
   const chat = new Chat({ transport: new DefaultChatTransport({ api: "/api/chat" }) });
   let input = $state("");
 

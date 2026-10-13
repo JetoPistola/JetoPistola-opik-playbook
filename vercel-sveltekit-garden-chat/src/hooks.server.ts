@@ -1,7 +1,5 @@
-import { config } from "dotenv";
-import path from "node:path";
+import { startTelemetry } from "$lib/server/telemetry";
 
-// Secrets live in one repo-root .env; this folder's .env wins if present.
-// Neither overrides variables already set in the shell.
-config({ path: path.resolve(process.cwd(), ".env"), quiet: true });
-config({ path: path.resolve(process.cwd(), "../.env"), quiet: true });
+// Runs once when the server module loads, before the first request. Without this call
+// no AI SDK span is ever exported and the Opik project stays empty.
+startTelemetry();
