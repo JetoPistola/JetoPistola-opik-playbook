@@ -1,0 +1,12 @@
+[project]
+name = "langgraph-boardgame-rules-rag"
+version = "0.1.0"
+description = "Rulebook Q&A over fictional board games: a two-node LangGraph graph."
+requires-python = ">=3.12"
+dependencies = [
+    "langchain>=1.0",
+    "langchain-openai>=1.0",
+    "langgraph>=1.0",
+    "numpy>=2.0",
+    "python-dotenv>=1.0",
+]
